@@ -2,7 +2,7 @@
   "name": "kerplunk-characteristic",
   "displayName": "Characteristics",
   "description": "Enables the tagging of activity items with generic characteristics",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "kerplunk": {
     "permissions": {
       "kerplunk-activityitem": {
