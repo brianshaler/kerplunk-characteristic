@@ -7,30 +7,26 @@ module.exports = (System) ->
   ActivityItem = System.getModel 'ActivityItem'
 
   saveModel = (item) ->
-    deferred = Promise.defer()
-    item.save (err) ->
-      return deferred.reject err if err
-      where =
-        'attributes.characteristic': item._id
-      delta =
-        'attributes.rated': false
-      options =
-        multi: true
-      ActivityItem
-      .update where, delta, options, (err, updateResult) ->
-        console.log 'reset ratings', err, updateResult
-        deferred.resolve item
-    deferred.promise
+    Promise.promise (resolve, reject) ->
+      item.save (err) ->
+        return reject err if err
+        where =
+          'attributes.characteristic': item._id
+        delta =
+          'attributes.rated': false
+        options =
+          multi: true
+        ActivityItem
+        .update where, delta, options, (err, updateResult) ->
+          console.log 'reset ratings', err, updateResult
+          resolve item
 
   getByText = (text) ->
-    deferred = Promise.defer()
-    Characteristic
+    mpromise = Characteristic
     .where
       text: text
-    .findOne (err, characteristic) ->
-      return deferred.reject err if err
-      deferred.resolve characteristic
-    deferred.promise
+    .findOne()
+    Promise mpromise
 
   routes:
     admin:

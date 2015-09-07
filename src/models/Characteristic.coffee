@@ -27,51 +27,47 @@ module.exports = (mongoose) ->
       default: Date.now
 
   CharacteristicSchema.statics.getOrCreateArray = (arr) ->
-    deferred = Promise.defer()
     return Promise.resolve() unless arr?.length > 0
-    @where
+    mpromise = @where
       text:
         '$in': arr
-    .find (err, chars) =>
-      return deferred.reject err if err
-      deferred.resolve Promise.all _.map arr, (char) =>
+    .find()
+    Promise(mpromise).then (chars) =>
+      Promise.all _.map arr, (char) =>
         existing = _.find chars, (existingChar) ->
           existingChar.textLower == char.toLowerCase()
         return existing if existing
         @getOrCreate char
-    deferred.promise
 
   CharacteristicSchema.statics.getOrCreate = (obj, retry = true) ->
     Characteristic = mongoose.model 'Characteristic'
-    deferred = Promise.defer()
     if typeof obj is 'string'
       obj =
         text: obj
 
-    return deferred.reject 'Bad input' unless obj.text?.length > 0
+    return Promise.reject new Error 'Bad input' unless obj.text?.length > 0
 
     obj.textLower = obj.text.toLowerCase()
 
-    Characteristic
+    mpromise = Characteristic
     .where
       textLower: obj.textLower
-    .findOne (err, char) ->
-      return deferred.reject err if err
-      return deferred.resolve char if char
+    .findOne()
+    Promise(mpromise).then (char) ->
+      return char if char
       obj.attributes =
         rated: false
       char = new Characteristic obj
       char.markModified 'attributes'
-      char.save (err) ->
-        if err
-          console.log 'char save error', err if err
-          return deferred.reject err unless retry == true
+      Promise char.save()
+      .catch (err) ->
+        console.log 'char save error', err if err
+        throw err unless retry == true
+        Promise.promise (resolve, reject) ->
           setTimeout ->
-            deferred.resolve Characteristic.getOrCreate obj, false
+            resolve Characteristic.getOrCreate obj, false
           , 100 + Math.random() * 100
-          return
-        deferred.resolve char
-    deferred.promise
+      .then -> char
 
   # CharacteristicSchema.pre 'save', (next) ->
   #   if !@ratings
