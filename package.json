@@ -4,6 +4,9 @@
   "description": "Enables the tagging of activity items with generic characteristics",
   "version": "0.0.3",
   "kerplunk": {
+    "dependencies": [
+      "kerplunk-activityitem"
+    ],
     "permissions": {
       "kerplunk-activityitem": {
         "models": [
